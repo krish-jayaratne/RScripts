@@ -13,7 +13,6 @@ refresh_token=$rtkn
     $param = $param -replace("\r\n","")
     $resp = Invoke-WebRequest -uri https://oauth2.googleapis.com/token -Method Post -Body $param
 
-
     $jresp = ConvertFrom-Json -InputObject $resp
     #$jresp | format-list
 
@@ -38,7 +37,7 @@ Function Get-GoogleStorageData {
     }
     catch 
     {
-        Write-Host "Exception cought"
+        Write-Host "Exception at Get-GoogleStorageData"
         $_.Exception.Response.statuscode
     }
 }
@@ -52,38 +51,33 @@ $rtkn="1//0g0hP-aL84l8kCgYIARAAGBASNwF-L9Iry55vb8-tESVJZMHs-c0nAW5-PlphaU-0s6KFG
 $duri = "https://storage.googleapis.com/storage/v1/b/krishtestbucket1/o"
 
 
-#$AccToken=""
-if ($accToken.length -eq 0 )
-{
-    $AccToken=Get-AccessToken -clent_id $cid -clent_secret $cse -redirct_uri $ruri -refresh_token $rtkn
-    Write-Host "access token=" $AccToken
-}
 
 $data=""
-$RetCode, $data = Get-GoogleStorageData -uri $duri -Token $accToken
-if ( $RetCode -eq "200")
+$loopcount=0
+Do
 {
-     convertto-json -inputobject ( $data | Select-Object -Property name,size,bucket ) 
-}
-else
-{
-   write-host "failed" 
-   $RetCode
-   if ($RetCode -eq "Unauthorized")
-   {
-       write-host "Obtaining another access token"
-       $AccToken=Get-AccessToken -clent_id $cid -clent_secret $cse -redirct_uri $ruri -refresh_token $rtkn
 
-       $RetCode, $data = Get-GoogleStorageData -uri $duri -Token $accToken
+    if ($accToken.length -eq 0 )
+    {
+        $AccToken=Get-AccessToken -clent_id $cid -clent_secret $cse -redirct_uri $ruri -refresh_token $rtkn
+    }
 
-       if ( $RetCode -eq "200")
+    $RetCode, $data = Get-GoogleStorageData -uri $duri -Token $AccToken
+    $loopcount++
+
+    if ( $RetCode -eq "200")
+    {
+         convertto-json -inputobject ( $data | Select-Object -Property name,size,bucket ) 
+    }
+    else
+    {
+       write-host "failed to access data, return code:" $RetCode
+
+       if ($RetCode -eq "Unauthorized" -and $loopcount -lt 2)
        {
-          convertto-json -inputobject $data.name
+           write-host "Setting to get a new access token"
+           $AccToken=""
        }
-       else
-       {
-          write-host "Second token failed too"
-       }
+    } 
+} until ( $RetCode -eq "200" -or  $loopcount -gt 1 )
 
-   }
-}
