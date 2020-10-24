@@ -42,6 +42,51 @@ Function Get-GoogleStorageData {
     }
 }
 
+Function Show-Data{
+    
+    param ( $data ) 
+
+
+    $loadinfo = [pscustomobject]@{
+		"fileLoaderOptions"= "TABLOCK";
+		"fileParsed"= $true;
+		"overrideLoadSQL"= "";
+		"overrideSourceColumns"= "";
+		"selectDistinctValues"= $false;
+		"sourceFile"= [pscustomobject]@{
+				"charSet"= "";
+				"escapeEncoding"= "";
+				"fieldDelimiter"= "|";
+				"fieldEnclosure"= "\";
+				"headerLine"= $true;
+				"name"= "$file";
+				"nonStringNullEncoding"= "";
+				"nullEncoding"= "";
+				"path"= "mypath";
+				"recordDelimiter"= ""
+			};
+		"sourceSchema"= "sourceSchema";
+		"sourceTables"= "myfile";
+		"useOverrideSourceColumns"= $false;
+		"whereAndGroupByClauses"= ""
+	};
+
+    $psdata =[pscustomobject]@{}
+
+    foreach ($d in $data)
+    {
+       $psdata = $psdata | add-member -NotePropertyMembers @{$d.name = @{"name"=$d.name; "description" = $d.description; "rowcount"=$d.size; "loadinfo"=$loadinfo } } -PassThru
+       write-host $psdata
+    }
+
+    $psJsonData = [pscustomobject]@{"ItemDetails"=$psdata }
+
+
+    convertto-json -Depth 4 -inputobject ( $psJsonData  ) 
+
+
+}
+
 
 
 $cid="687147849267-reoeac2tpgromo7kvif4mc0u5ps3p5k1.apps.googleusercontent.com"
@@ -67,7 +112,7 @@ Do
 
     if ( $RetCode -eq "200")
     {
-         convertto-json -inputobject ( $data | Select-Object -Property name,size,bucket ) 
+         Show-Data -data $data
     }
     else
     {
