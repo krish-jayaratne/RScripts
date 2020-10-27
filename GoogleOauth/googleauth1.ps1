@@ -11,12 +11,21 @@ redirect_uri=$ruri&
 refresh_token=$rtkn
 "@
     $param = $param -replace("\r\n","")
-    $resp = Invoke-WebRequest -uri https://oauth2.googleapis.com/token -Method Post -Body $param
 
-    $jresp = ConvertFrom-Json -InputObject $resp
-    #$jresp | format-list
+    try
+    {
+        $resp = Invoke-WebRequest -uri https://oauth2.googleapis.com/token -Method Post -Body $param
 
-    $jresp.access_token
+        $jresp = ConvertFrom-Json -InputObject $resp
+        #$jresp | format-list
+
+        $jresp.access_token
+    }
+    catch
+    {
+        Write-Host "Exception at Get-AccessToken"
+        $_.Exception.Response.StatusCode
+    }
 
 }
  
@@ -42,12 +51,12 @@ Function Get-GoogleStorageData {
     }
 }
 
-Function Show-Data{
+Function Format-DataToJson{
     
     param ( $data ) 
 
 
-    $loadinfo = [pscustomobject]@{
+    $loadinfo = @{
 		"fileLoaderOptions"= "TABLOCK";
 		"fileParsed"= $true;
 		"overrideLoadSQL"= "";
@@ -71,7 +80,7 @@ Function Show-Data{
 		"whereAndGroupByClauses"= ""
 	};
 
-    $psdataPref =[pscustomobject]@{	"treeViewLayout"="List"; "treeViewIcons"=@{"schema"= "database.ico"; "table"="table.ico"}}
+    $psdataPref =@{	"treeViewLayout"="List"; "treeViewIcons"=@{"schema"= "database.ico"; "table"="table.ico"}}
 	$bucket = $data.Item(1).bucket
     $psdata = @{}
     
@@ -86,7 +95,7 @@ Function Show-Data{
     $JsonData = convertto-json -Depth 7 -inputobject ( $psJsonData  )
     out-file -InputObject $JsonData -FilePath C:\temp\jsonout.txt
     
-    $JsonData | select -First 1 
+     $JsonData
 
 
 }
@@ -102,6 +111,7 @@ $duri = "https://storage.googleapis.com/storage/v1/b/krishtestbucket1/o"
 
 
 $data=""
+$OutData="";
 $loopcount=0
 Do
 {
@@ -116,7 +126,7 @@ Do
 
     if ( $RetCode -eq "200")
     {
-         Show-Data -data $data
+         $outData = Format-DataToJson -data $data
     }
     else
     {
@@ -129,4 +139,11 @@ Do
        }
     } 
 } until ( $RetCode -eq "200" -or  $loopcount -gt 1 )
+If ( $RetCode -eq "200" )
+   {
+     $OutData
+   }
+else {
+    Write-host "Operation failed"
+}
 
