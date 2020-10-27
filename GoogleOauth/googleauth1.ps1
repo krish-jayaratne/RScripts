@@ -71,18 +71,19 @@ Function Show-Data{
 		"whereAndGroupByClauses"= ""
 	};
 
-    $psdata =[pscustomobject]@{}
-
+    $psdataPref =[pscustomobject]@{	"treeViewLayout"="List"; "treeViewIcons"=@{"schema"= "database.ico"; "table"="table.ico"}}
+	$bucket = $data.Item(1).bucket
+    $psdata = @()
+    
     foreach ($d in $data)
     {
-       $psdata = $psdata | add-member -NotePropertyMembers @{$d.name = @{"name"=$d.name; "description" = $d.description; "rowcount"=$d.size; "loadinfo"=$loadinfo } } -PassThru
-       write-host $psdata
+       $psdata =  add-member -InputObject $psdata -NotePropertyMembers @{$d.name = @{"name"=$d.name; "description" = $d.description; "rowcount"=$d.size; "loadinfo"=$loadinfo } } -PassThru
     }
 
-    $psJsonData = [pscustomobject]@{"ItemDetails"=$psdata }
+    $psJsonData =  add-member -inputObject $psdataPref  -notePropertyMembers @{$bucket=$psdata } -PassThru
 
 
-    convertto-json -Depth 4 -inputobject ( $psJsonData  ) 
+    convertto-json -Depth 5 -inputobject ( $psJsonData  ) 
 
 
 }
