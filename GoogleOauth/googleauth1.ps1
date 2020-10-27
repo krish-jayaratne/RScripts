@@ -73,17 +73,20 @@ Function Show-Data{
 
     $psdataPref =[pscustomobject]@{	"treeViewLayout"="List"; "treeViewIcons"=@{"schema"= "database.ico"; "table"="table.ico"}}
 	$bucket = $data.Item(1).bucket
-    $psdata = @()
+    $psdata = @{}
     
     foreach ($d in $data)
     {
-       $psdata =  add-member -InputObject $psdata -NotePropertyMembers @{$d.name = @{"name"=$d.name; "description" = $d.description; "rowcount"=$d.size; "loadinfo"=$loadinfo } } -PassThru
+       $columns=@()
+       $psdata =  add-member -InputObject $psdata -NotePropertyMembers @{$d.name = @{"name"=$d.name; "description" = $d.selflink; "rowCount"=[int32]$d.size; "uiConfigLoadTableProperties"= @{}; "columns"=$columns; "loadInfo"=$loadinfo } } -PassThru
     }
 
     $psJsonData =  add-member -inputObject $psdataPref  -notePropertyMembers @{$bucket=$psdata } -PassThru
 
-
-    convertto-json -Depth 5 -inputobject ( $psJsonData  ) 
+    $JsonData = convertto-json -Depth 7 -inputobject ( $psJsonData  )
+    out-file -InputObject $JsonData -FilePath C:\temp\jsonout.txt
+    
+    $JsonData | select -First 1 
 
 
 }
