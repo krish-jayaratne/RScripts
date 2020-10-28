@@ -1,0 +1,155 @@
+{
+	"ConnectionProperties": { 
+		"connectionPropertiesType": "Source",
+		"whereScapeFieldVisibility": { 
+			"administratorUserID": false,
+			"administratorUserPassword": false,
+			"databaseID": true,
+			"databaseType": true,
+			"dbServerHomeDirectory": true,
+			"defaultSchemaForBrowsing": true,
+			"extractUserID": false,
+			"extractUserPassword": false,
+			"odbcDataSourceName": true,
+			"windowsHostName": true,
+			"windowsUser": true,
+			"windowsUserPassword": true,
+			"workDirectory": true
+		}
+	},
+	"uiConfigFields": [ 
+		{ 
+			"description": "Fully qualified google storage path",
+			"displayName": "storage path",
+			"documentation": true,
+			"encryption": "none",
+			"group": "Other",
+			"masked": false,
+			"name": "storagepath",
+			"order": 900,
+			"page": "Properties",
+			"required": false,
+			"setEnvVarForScripts": true,
+			"textBoxSettings": { 
+				"default": "",
+				"length": 256,
+				"multiLineEdit": false
+			},
+			"type": "textBox"
+		},
+    {
+			"description": "Auth Url to get auth token",
+			"displayName": "Auth Url",
+			"documentation": true,
+			"encryption": "none",
+			"group": "Authentication",
+			"masked": false,
+			"name": "AuthUrl",
+			"order": 900,
+			"page": "Properties",
+			"required": false,
+			"setEnvVarForScripts": true,
+			"textBoxSettings": { 
+				"default": "",
+				"length": 256,
+				"multiLineEdit": false
+			},
+			"type": "textBox"
+		},
+		{ 
+			"description": "Token url for access token",
+			"displayName": "Token Url",
+			"documentation": true,
+			"encryption": "none",
+			"group": "Authentication",
+			"masked": false,
+			"name": "TokenUrl",
+			"order": 900,
+			"page": "Properties",
+			"required": false,
+			"setEnvVarForScripts": true,
+			"textBoxSettings": { 
+				"default": "",
+				"length": 256,
+				"multiLineEdit": false
+			},
+			"type": "textBox"
+		},
+		{ 
+			"description": "Redirect Url - used in Authentication",
+			"displayName": "Redirect Url",
+			"documentation": true,
+			"encryption": "none",
+			"group": "Authentication",
+			"masked": false,
+			"name": "RedirectUrl",
+			"order": 900,
+			"page": "Properties",
+			"required": false,
+			"setEnvVarForScripts": true,
+			"textBoxSettings": { 
+				"default": "",
+				"length": 256,
+				"multiLineEdit": false
+			},
+			"type": "textBox"
+		},
+		{ 
+			"description": "If Refresh Token obtained by a different process",
+			"displayName": "RefreshToken",
+			"documentation": false,
+			"encryption": "none",
+			"group": "Authentication",
+			"masked": true,
+			"name": "RefreshToken",
+			"order": 900,
+			"page": "Properties",
+			"required": false,
+			"setEnvVarForScripts": true,
+			"textBoxSettings": { 
+				"default": "",
+				"length": 256,
+				"multiLineEdit": false
+			},
+			"type": "textBox"
+		},
+		{ 
+			"description": "Client ID in cloud environment",
+			"displayName": "Client Id",
+			"documentation": false,
+			"encryption": "none",
+			"group": "Authentication",
+			"masked": true,
+			"name": "ClientId",
+			"order": 900,
+			"page": "Properties",
+			"required": false,
+			"setEnvVarForScripts": true,
+			"textBoxSettings": { 
+				"default": "",
+				"length": 256,
+				"multiLineEdit": false
+			},
+			"type": "textBox"
+		},
+		{ 
+			"description": "Client Secret",
+			"displayName": "Client Secret",
+			"documentation": false,
+			"encryption": "none",
+			"group": "Authentication",
+			"masked": true,
+			"name": "ClientSecret",
+			"order": 900,
+			"page": "Properties",
+			"required": false,
+			"setEnvVarForScripts": true,
+			"textBoxSettings": { 
+				"default": "",
+				"length": 256,
+				"multiLineEdit": false
+			},
+			"type": "textBox"
+		}
+	]
+}
