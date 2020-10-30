@@ -69,38 +69,71 @@ Function Get-GoogleStorageData {
 Function Format-DataToJson{
     
     param ( $data ) 
-    $loadinfo = @{
-		"fileLoaderOptions"= "TABLOCK";
-		"fileParsed"= $true;
-		"overrideLoadSQL"= "";
-		"overrideSourceColumns"= "";
-		"selectDistinctValues"= $false;
-		"sourceFile"= [pscustomobject]@{
-				"charSet"= "";
-				"escapeEncoding"= "";
-				"fieldDelimiter"= "|";
-				"fieldEnclosure"= "\";
-				"headerLine"= $true;
-				"name"= "$file";
-				"nonStringNullEncoding"= "";
-				"nullEncoding"= "";
-				"path"= "mypath";
-				"recordDelimiter"= ""
-			};
-		"sourceSchema"= "sourceSchema";
-		"sourceTables"= "myfile";
-		"useOverrideSourceColumns"= $false;
-		"whereAndGroupByClauses"= ""
-	  };
-
+    $jloadinfo = 
+@"
+{
+	"fileLoaderOptions": "TABLOCK",
+	"fileParsed": true,
+	"overrideLoadSQL": "",
+	"overrideSourceColumns": "",
+	"selectDistinctValues": false,
+	"sourceFile":
+          {
+			"charSet": "",
+			"escapeEncoding": "",
+			"fieldDelimiter": "|",
+			"fieldEnclosure": "\\",
+			"headerLine": true,
+			"name": "",
+			"nonStringNullEncoding": "",
+			"nullEncoding": "",
+			"path":"",
+			"recordDelimiter":""
+		},
+	"sourceSchema": "sourceSchema",
+	"sourceTables": "",
+	"useOverrideSourceColumns": false,
+	"whereAndGroupByClauses": ""
+  }
+"@
+$jcolumns = @"
+{
+	"name": "data",
+	"dataType": "text",
+	"dataTypeLength": 64,
+	"dataTypeScale": null,
+	"dataTypePrecision": null,
+	"nullAllowed": true,
+	"defaultValue": "",
+	"displayName": "data",
+	"description": "JSON data",
+	"format": "",
+	"additive": false,
+	"numeric": false,
+	"attribute": false,
+	"sourceTable": "myfile",
+	"sourceColumn": "1",
+	"transform": "",
+	"transformType": "",
+	"uiConfigColumnProperites": {}
+}
+"@
     $psdataPref =@{	"treeViewLayout"="List"; "treeViewIcons"=@{"schema"= "database.ico"; "table"="table.ico"}}
   	$bucket = $data.Item(1).bucket
     $psdata = @{}
+    $a=0
+
     
     foreach ($d in $data)
     {
-       $columns=@()
+       $columns= @()
+       $columns += $(convertfrom-json $jcolumns)
+       $columns[0].sourceTable=$d.name
+       $loadinfo = ConvertFrom-Json $jloadinfo
        $psdata =  add-member -InputObject $psdata -NotePropertyMembers @{$d.name = @{"name"=$d.name; "description" = $d.selflink; "rowCount"=[int32]$d.size; "uiConfigLoadTableProperties"= @{}; "columns"=$columns; "loadInfo"=$loadinfo } } -PassThru
+       $psdata.($d.name).loadinfo.sourcefile.name = $d.name
+       $psdata.($d.name).loadinfo.sourcefile.path = $d.selflink
+       $psdata.($d.name).loadinfo.sourceTables = $d.name
     }
 
     $psJsonData =  add-member -inputObject $psdataPref  -notePropertyMembers @{$bucket=$psdata } -PassThru
@@ -122,12 +155,12 @@ $turi = "https://oauth2.googleapis.com/token"
 
 #Comment below for local run, uncomment for Red
 <#
-$cid=$env:WSL_SRCCFG_ClientId  
-$cse=$env:WSL_SRCCFG_ClientSecret
-$turi=$env:WSL_SRCCFG_TokenUrl  
-$ruri=$env:WSL_SRCCFG_RdirUri
-$duri=$env:WSL_SRCCFG_storagepath
-$rtkn=$env:WSL_SRCCFG_RefreshToken
+$cid="$env:WSL_SRCCFG_ClientId"  
+$cse="$env:WSL_SRCCFG_ClientSecret"
+$turi="$env:WSL_SRCCFG_TokenUrl" 
+$ruri="$env:WSL_SRCCFG_RdirUri"
+$duri="$env:WSL_SRCCFG_storagepath"
+$rtkn="$env:WSL_SRCCFG_RefreshToken"
 #>
 
 
@@ -138,7 +171,7 @@ $accToken = ""
 $logdata = ""
 $templogfile=$env:TEMP+"\googlebrowslog.txt"
 $tempoutfile=$env:Temp + "\googlebrowsout.txt"
-$AccTokenFile=$env:Temp + "\acctoken.dat"
+$AccTokenFile=$env:Temp + "\GoogleAcctoken.dat"
 
 
 try
