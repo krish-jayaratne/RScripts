@@ -36,7 +36,7 @@ refresh_token=$rtkn
 
     try
     {
-        $resp = Invoke-WebRequest -uri https://oauth2.googleapis.com/token -Method Post -Body $param
+        $resp = Invoke-WebRequest -uri $token_uri -Method Post -Body $param
 
         $jresp = ConvertFrom-Json -InputObject $resp
 
@@ -50,6 +50,23 @@ refresh_token=$rtkn
 }
  
 Function Get-GoogleStorageData {
+    param ( 
+       $uri, $Token 
+    )
+
+    try
+    {   
+        $res = Invoke-WebRequest -Uri $uri  -Headers @{"Authorization" = "Bearer $Token"} 
+        $jres=convertfrom-json $res
+        $res.StatusCode, $jres.items
+    }
+    catch 
+    {
+        $_.Exception.Response.statuscode
+    }
+}
+
+Function Get-s3bucketcontent {
     param ( 
        $uri, $Token 
     )
@@ -147,12 +164,12 @@ $jcolumns = @"
 
 
 #Remove below for Red 
-$cid="687147849267-reoeac2tpgromo7kvif4mc0u5ps3p5k1.apps.googleusercontent.com"
-$cse="fwHh0r7R1ozkv9F97Mo_YR7A&"
-$ruri="https://127.0.0.1"
-$rtkn="1//0g0hP-aL84l8kCgYIARAAGBASNwF-L9Iry55vb8-tESVJZMHs-c0nAW5-PlphaU-0s6KFGlbFnZUnPkaJSGe7pH2m9xJ08KuPumU"
-$duri = "https://storage.googleapis.com/storage/v1/b/krishtestbucket1/o"
-$turi = "https://oauth2.googleapis.com/token"
+$cid="2l83qes1eogie8g6noaejlvqtq"
+$cse="1iin6lca6kd7ln0go8nvf5ftpodqi2f24311an27fbstohmuaiv1"
+$ruri="https://127.0.0.1/"
+$rtkn="eyJjdHkiOiJKV1QiLCJlbmMiOiJBMjU2R0NNIiwiYWxnIjoiUlNBLU9BRVAifQ.HWE29oRUNwtJfvWk_MKu43N9hGcRjNHizaOLiS2UFrRAshrdBBdgih8ji9FKK_xR9EwZ9kBV6eQHwWwC98TboU9XmDKADLQeSs9gBogxp9e_gK7TKKo5qxQayGJPjhaG9zVtlYTzI8mZ0LihZ18-ogcVh1r-iVJtdDJo0KIYIUlwIeVrRNP0mxI4RDfvj_2-Y4Ao-owf5dqKSV8tXyMx-xC8Wc5ynAAxbnRP80Q4pxj-asQYglsyPHSJ8j4KoV9yD1H75-jrePtitUG1EVFRQf5-1XUHJL4bHpuc2wzqPoraQAO84UK3PFYLg2SbvVTwYIhF2HTxhfIF78qq8kG5_g.GjRtRG0pGOWQcCNe.zb2yHlB0mETysceV5LJcdMD5cZelZ9lyonE3nZtYD2Km3PSxQoCyMWZhOjHEuypO0WLQnE8UY7N5Un3C2C11N38bMDErH-yaDwaEXO-ItdBFeb3knfrgq3bG86XDFruXukqyjk4OjuMCjndZdb9G4St4NdJGiF7Ei_7U3707pqAsji3HlRrrSRUwQihd7jixNYUwijbD-DORxSS4ZHZC-mlzFwbgfDoV2e3yNGkeGHzNrDppIdDfbfycPSbcndmGjkinoqnCcAFIqW3ePdbpb8jNezCzDQ6-Ub1ytN6MiKYS1cEKBA-yt65S9_8ssxLGlEGU2RRAfFROD21FAUsGG2HAKxmx9A-SMCc7AKO16bg685kQpXEeEyiclOR6W3_dZ7-3wSzIkd4_sNu_c08lKOK8HY0-qbySZYDQNzYSdUJCIjVYrLGg89EChLqxfN-awJSp6b9_6eYjaMXy0sUcXaI9Y6PaKV-BhfPxMAcidGeN-F9gAn0Z4Zxzpia_W6lmd5Taw5KiDQpBQHFjReaDP7uU0EKIdbM7qX6TKL03ZwivSrn-aX6XU8ra7fn_qaJAPLj4bb3p2czWyp1xtN5pDi2f3PgaS52wq4GayjN_TAEBD8omDU3fgOkKPKhsuk0FswenkLbxDWIdPF5VQinVWUyE4IS-HkvmQzUkirr0eXRxJjhrM5W_KIIXB0bSu2gd9wlLgctA3AYPTOmN7dYg_YI-j1qrKZcmoxbx8_YQVkH1gZ-W-G_p7p23zTWfb6zYbqMEwfRxrx0y7wGWgbHQYR8miZythbP999owoJsd9flN1bwd_8QFANPLI5FmlpBVsXJvl7ZALVg8HHgOGI8VNVyM3NO8RElcytTQagwnw-XpzE1bdTMSIShLoFwJa38n84sXOu0UXNhX3zWS4S7WhkG2Ek7-0u0skJ1DcR4JNZlHbDFuxTba1PEmKnoOhx6aEV-xvQ3597pGqWLxdwDMe45HaeW4QJv7SCVEYf9cq1nFZfPns38Dn1zN4CE4OnSfnztKCXp24jQS_snYSeX31mARI00j7QlhRyqAEr1XNl98p-k7d0GPdVrAsmn4efFAcnz5Vw-x0IbHH2oP67Uwt6PMKpEnCEs7HeNocuY1VL3FxRE6TtAZziVOFza-7auUD_11zsgQwEAZZ5cCojp_zRugcTQt9fml9Ru06XObSNEP9em16hNftY5Np9YDBKWzJ8cbSvvq8FS2p5nAYilMqGvHm3u9zg6cPXxY8iaJDSGFCiIhfP7IvpL3qvKXDqvF15aEL7bi.OAl9r087YCV9F_2HjtQhoA"
+$duri = ""
+$turi = "https://krtest.auth.ap-southeast-2.amazoncognito.com/oauth2/token"
 
 #Comment below for local run, uncomment for Red
 <#
@@ -170,11 +187,12 @@ $OutData=""
 $loopcount=0
 $accToken = ""
 $logdata = ""
-$templogfile=$env:TEMP+"\googlebrowslog.txt"
-$tempoutfile=$env:Temp + "\googlebrowsout.txt"
-$AccTokenFile=$env:Temp + "\GoogleAcctoken.dat"
+$templogfile=$env:TEMP+"\s3log.txt"
+$tempoutfile=$env:Temp + "\s3browsout.txt"
+$AccTokenFile=$env:Temp + "\s3Acctoken.dat"
 
 
+<#
 try
   {
       $accToken = Get-Content -Path $AccTokenFile -ErrorAction stop
@@ -184,6 +202,7 @@ try
   {
      $accToken=""
   }
+#>
 
 Do
 {
@@ -205,9 +224,10 @@ Do
            }
         }
     }
+   $loopcount++
 
+<#
     $RetCode, $data = Get-GoogleStorageData -uri $duri -Token $AccToken
-    $loopcount++
 
     if ( $RetCode -eq "200")
     {
@@ -223,7 +243,10 @@ Do
            $AccToken=""
        }
     } 
+#>
 } until ( $RetCode -eq "200" -or  $loopcount -gt 1 )
+
+
 
 If ( $RetCode -eq "200" )
    {
@@ -237,3 +260,4 @@ else {
     Write-output "Operation failed"
     write-output $logdata
 }
+
