@@ -1,0 +1,15 @@
+grant create session to &1;  
+grant create procedure to &1;  
+grant create sequence to &1;  
+grant create database link to &1;  
+grant create table to &1;  
+grant create view to &1;  
+grant create materialized view to &1;  
+grant query rewrite to &1;  
+grant global query rewrite to &1;  
+grant select any table to &1;  
+grant select on sys.v_$session to &1;  
+grant drop any table to &1;  
+grant execute on sys.dbms_lock to &1;  
+grant unlimited tablespace to &1;  
+exit; 
