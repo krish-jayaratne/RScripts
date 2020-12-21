@@ -1,0 +1,20 @@
+{% extends "generic_action_script" %}
+
+{% block "ExecuteSQLBlock" %}
+def ExecuteSQLBlock(block):
+  WriteAudit("TargetServer: {}".format(os.environ['WSL_TGT_SERVER']))
+  WriteAudit("TargetDb: {}".format(os.environ['WSL_TGT_DBID']))
+  WriteAudit("TargetDb User: {}".format(os.environ['WSL_TGT_USER']))
+  WriteAudit("EOS: {}".format("{{options.endOfStatement}}"))
+  try:
+   for stmt in block.split(r"{{options.endOfStatement}}"):
+      if (len(stmt.strip())>0):
+        WriteAudit("SQL: {}".format(stmt))
+        azcon = pyodbc.connect(driver="{ODBC Driver 17 for SQL Server}",server=os.environ['WSL_TGT_SERVER'],database=os.environ['WSL_TGT_DBID'],uid=os.environ['WSL_TGT_USER'],pwd=os.environ['WSL_TGT_PWD'])
+        cur = azcon.cursor()
+        res = cur.execute(stmt)
+        azcon.commit()
+  except pyodbc.Error as e:
+      WriteAudit("Error: {}".format(e))
+      raise Exception("pyodbc returned error {}".format(e))
+{% endblock %}
