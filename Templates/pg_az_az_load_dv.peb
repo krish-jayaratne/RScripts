@@ -80,8 +80,7 @@ $p_status =1
 {%- fetch table.loadInfo.sourceConnection -%}
 {% br %}
 
-#IF ($env:WSL_WORKDIR.length -eq 0) { $env:WSL_WORKDIR = "C:\temp"}
- $env:WSL_WORKDIR = $env:Temp
+IF ($env:WSL_WORKDIR.length -eq 0) { $env:WSL_WORKDIR = "C:\temp"}
 
 $FILECTL=$env:WSL_WORKDIR+"\{{ table.name }}"+".ctl"
 $FILELOG=$env:WSL_WORKDIR+"\{{ table.name }}"+".log"
