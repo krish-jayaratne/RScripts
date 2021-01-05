@@ -1,0 +1,110 @@
+function runSQL_ODBC( $stmt, $conn)
+{
+#returns returncode and data
+
+   $res=0
+   $cmd = New-Object system.Data.Odbc.OdbcCommand($stmt,$conn)
+   $da = New-Object system.Data.Odbc.OdbcDataAdapter($cmd)
+   $dt = New-Object system.Data.datatable
+   try {
+       $res = $da.fill($dt)
+      }
+   catch {
+      throw "Error: $($_.Exception.Message). `nStack trace:`n$($_.ScriptStackTrace), `nsqlQuery:"+$stmt
+      }
+   return $res,  $dt
+}
+
+if ( Test-Path env:WSL_WORKDIR ) { $env:WORKDIR=$WSL_WORKDIR} else { $env:WORKDIR=$PSScriptRoot }
+if ( Test-Path env:WSL_SEQUENCE ) { $env:SEQUENCE=$WSL_SEQUENCE } else { $env:SEQUENCE=get-random}
+
+$env:FILECTL=$env:WSL_WORKDIR+"{{ table.name }}"+".ctl"
+$env:FILELOG=$env:WSL_WORKDIR+"{{ table.name }}"+".log"
+$env:FILEAUD=$env:WSL_WORKDIR+"{{ table.name }}"+".aud"
+$env:FILESQL=$env:WSL_WORKDIR+"{{ table.name }}"+".sql"
+
+get-childItem env: > c:\temp\test.txt
+  $v_dss_change_hash="NULL"
+  $v_dss_create_time= "NULL"
+  $v_dss_update_time = "NULL"
+
+$stmt_update =  @"
+   INSERT /*+ APPEND */ INTO [TABLEOWNER].[{{ table.name }}]    {% br %}
+   (                                                              {% br %}
+   {%- for column in table.columns -%}
+      {%- set sTargetColumn = column.name -%}
+      {%- if loop.first -%}
+	    {{ sTargetColumn }}                      {% br %}
+	{%- else -%}
+	     ,{{ sTargetColumn }}                    {% br %}
+               {%- endif -%}
+	      {%- endfor -%}
+    )                                                           {% br %}
+   SELECT                                                      {% br %}
+    {% for column in table.columns -%}
+       {%- set sTargetColumn = column.name -%}
+       {%- if column.source == column.name -%}
+          $v_{{column.name}}
+       {%- elseif column.hubhashkey or column.linkhashkey or column.changehashkey  -%}
+          Cast(Hashbytes('md5',
+          {%- for srccol in column.hashKeyImmediateSources -%}
+              COALESCE( cast ({{ srccol.source }} as varchar(max)), 'null')
+              {%- if loop.last -%}
+                 ) AS CHAR(32)) AS {{column.name}}
+              {%- else -%}
+                 + '||' +
+              {%- endif -%}
+          {% endfor %}
+       {%- else -%}
+          {{column.source}}
+       {%- endif -%}
+       {%- if not loop.last -%}
+         ,             {%- br %}
+       {%- else -%}
+          {%- br %}
+       {%- endif %}
+  {% endfor -%}
+  {{table.sourceJoinDetails.join}}                                                 {% br %}
+"@
+out-file -FilePath $env:FILESQL -Encoding string -inputobject $stmt
+out-file -append -FilePath $env:FILESQL -Encoding string -inputobject $connectstring
+
+
+[String] $connectstring = "DSN=" + $env:WSL_TGT_DSN + ";UID=" +$env:WSL_TGT_USER + ";Pwd=" + $env:WSL_TGT_PWD
+$conn = New-Object System.Data.Odbc.OdbcConnection($connectstring)
+$conn.open()
+
+try
+{
+    $ODBCRet = runSQL_ODBC 'Select count(1) from $OBJECT$;' $conn
+    out-file -FilePath $env:FILEAUD -Encoding string -inputobject ("Starting row count: " + $ODBCRet[1].ItemArray[0])
+
+    $ODBCRet = runSQL_ODBC 'truncate table $OBJECT$;' $conn
+    out-file -FilePath $env:FILEAUD -append -Encoding string -inputobject ("Trunctate Returned: " + $ODBCRet[0])
+
+    $ODBCRet = runSQL_ODBC $stmt_update $conn
+    out-file -FilePath $env:FILEAUD -append -Encoding string -inputobject ("update Returned: " + $ODBCRet[0])
+
+    $ODBCRet = runSQL_ODBC 'Select * from $OBJECT$;' $conn
+    out-file -FilePath $env:FILEAUD -append -Encoding string -inputobject ("row count returned by select: " + $ODBCRet[0])
+
+    $ODBCRet = runSQL_ODBC 'Select count(1) from $OBJECT$;' $conn
+    out-file -FilePath $env:FILEAUD -append -Encoding string -inputobject ("row count returned by count: " + $ODBCRet[1].'COUNT(1)')
+}
+catch
+{
+   write-output -2
+   write-output "EXCEPTION!!"
+   write-output $_.Exception.message
+   write-output -inputobject $env:FILEAUD
+   $conn.close()
+   return
+
+}
+
+$conn.close()
+
+write-output 1
+write-output "Completed"
+write-output -inputobject $env:FILEAUD | out-null
+get-content $env:FILEAUD
